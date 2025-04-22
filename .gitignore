@@ -1,0 +1,15 @@
+__pycache__
+.DS_Store
+.pytest_cache
+_exclude
+*.swp
+dist
+*.egg-info
+*.dtd
+super-linter.log
+.eggs
+build
+debug
+.ipynb_checkpoints
+script
+.snakemake

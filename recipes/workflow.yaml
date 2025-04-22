@@ -1,0 +1,11 @@
+name: test
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - beautifulsoup4
+  - pandarallel
+  - rdkit==2024.9.3
+  - snakemake
+  - tqdm
