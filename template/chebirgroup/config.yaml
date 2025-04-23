@@ -1,0 +1,13 @@
+max-jobs-per-second: 10
+default-resources:
+    mem_mb: 2000
+set-threads:
+    search: 12
+    refine: 4
+set-resources:
+    search:
+        mem: 32000MB
+    refine:
+        mem: 64000MB
+    aggregate:
+        mem: 128000MB

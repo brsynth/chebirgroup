@@ -3,27 +3,42 @@
 ## Installation
 
 ```sh
-conda env create --file recipes/worklow.yaml --name chebi-rgroup
+conda env create --file recipes/worklow.yaml --name chebirgroup
 pip install --no-deps -e .
 ```
 
 ## Build dataset
 
-### Download PubChem
+### 1 - Download PubChem
 ```sh
 python -m chebirgroup.pubchem.download \
     --output-pubchem-dir <output dir> \
     --output-pubchem-db <output sql database>
 ```
 
-### Download Rhea
+### 2 - Download Rhea
 ```sh
 python -m chebirgroup.rhea.download \
     --output-rhea-dir <output dir> \
     --parameter-release-int <int>
 ```
 
-### R-group search
+### 3 - R-group search
 ```sh
-snakemake -n --config input_chebi_csv=$work/rgroup/rhea/rhea-chebi-smiles.csv input_pubchem_db=$work/rgroup/pubchem.db output_dir_str=$work/rgroup/chebi
+snakemake \
+    -p \
+    -j 48 \
+    -c 48 \
+    --workflow-profile template/chebirgroup \
+    -s ./src/chebirgroup/rgroup/Snakefile \
+    --use-conda \
+    --latency-wait 5 \
+    --rerun-incomplete \
+    --config input_chebi_csv=rhea-chebi-smiles.csv input_pubchem_db=pubchem.db output_dir_str=chebi
 ```
+
+## Dataset overview
+The Snakemake workflow produces a `csv.gz` file containing:  
+| smiles_rhea | chebi | num_heavy_atoms | additional_substituents_smiles | additional_substituents_pubchem_cid | only_match_rgroup_smiles | only_match_rgroup_pubchem_cid |
+| ----------- | ----------- |
+| str | List[str] | int | List[str] | List[List[str]] | List[str] | List[List[str]] |
