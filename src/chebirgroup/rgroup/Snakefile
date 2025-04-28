@@ -13,7 +13,7 @@ df = pd.read_csv(input_chebi_csv)
 
 chebi_ids = []
 for ix, row in df.iterrows():
-    if is_candidate(smiles=row["smiles_rhea"]):
+    if is_candidate(smiles=row["smiles"]):
         row_chebi_ids = ast.literal_eval(row["chebi"])
         chebi_id = row_chebi_ids[0]
         chebi_ids.append(chebi_id.replace("CHEBI:",""))

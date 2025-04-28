@@ -1,4 +1,5 @@
 import argparse
+import ast
 import json
 import multiprocessing
 import os
@@ -104,8 +105,8 @@ if __name__ == "__main__":
     df = pd.read_csv(args.input_chebi_csv)
     original_smiles = None
     for _, row in df.iterrows():
-        if f"CHEBI:{args.parameter_chebi_int}" in row["chebi"]:
-            original_smiles = row["smiles_rhea"]
+        if f"CHEBI:{args.parameter_chebi_int}" in ast.literal_eval(row["chebi"]):
+            original_smiles = row["smiles"]
             break
     assert (
         original_smiles is not None
@@ -215,6 +216,21 @@ if __name__ == "__main__":
             else:
                 results["onlyrgroup"][data["smiles"]] = data["cid"]
 
+    # Format cid
+    data = {}
+    for key in results:
+        new_key = {}
+        for smiles, cids in results[key].items():
+            new_cids = []
+            for cid in cids:
+                if "," in cid:
+                    new_cids.extend(cid.split(","))
+                else:
+                    new_cids.append(cid)
+            new_cids = [int(x) for x in new_cids]
+            new_key[smiles] = new_cids
+        data[key] = new_key
+
     # Write output
     with open(foutput, "w") as fd:
-        json.dump(results, fd)
+        json.dump(data, fd)

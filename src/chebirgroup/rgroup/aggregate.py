@@ -28,9 +28,9 @@ if __name__ == "__main__":
     df["only_match_rgroup_pubchem_cid"] = [[] for _ in range(df.shape[0])]
 
     for ix, row in df.iterrows():
-        if not is_candidate(row["smiles_rhea"]):
+        if not is_candidate(row["smiles"]):
             continue
-        print("Deal with:", row["chebi"])
+        #print("Deal with:", row["chebi"])
 
         chebi_id = row["chebi"][0]
         chebi_id = chebi_id.lower().replace(":", "_")
@@ -40,27 +40,23 @@ if __name__ == "__main__":
 
         with open(path_refines[0]) as fd:
             data_refine = json.load(fd)
-        data = defaultdict(list)
-        for smi, cids in data_refine["base"].items():
-            cid = ",".join(cids)
-            data[smi].append(cid)
         smiles, cids = [], []
-        for smi, cid in data.items():
+        for smi, cid in data_refine["base"].items():
             smiles.append(smi)
-            cids.append((",".join(cid)).split(","))
+            cids.append(cid)
         df.at[ix, "additional_substituents_smiles"] = smiles
         df.at[ix, "additional_substituents_pubchem_cid"] = cids
 
-        data = defaultdict(list)
-        for smi, cids in data_refine["onlyrgroup"].items():
-            cid = ",".join(cids)
-            data[smi].append(cid)
         smiles, cids = [], []
-        for smi, cid in data.items():
+        for smi, cid in data_refine["onlyrgroup"].items():
             smiles.append(smi)
-            cids.append((",".join(cid)).split(","))
+            cids.append(cid)
         df.at[ix, "only_match_rgroup_smiles"] = smiles
         df.at[ix, "only_match_rgroup_pubchem_cid"] = cids
 
+    # Re-order columns
+    cols = ["smiles", "chebi", "num_heavy_atoms", "exact_mol_wt", "additional_substituents_smiles", "additional_substituents_pubchem_cid", "only_match_rgroup_smiles", "only_match_rgroup_pubchem_cid"]
+    df = df[cols]
+
+    # Save
     df.to_csv(args.output_chebi_csv, index=False)
-    print("End")

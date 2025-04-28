@@ -1,4 +1,5 @@
 import argparse
+import ast
 import multiprocessing
 import os
 from collections import defaultdict
@@ -34,7 +35,7 @@ def check_rgroup(data):
             options=ps,
         )
         if len(unmatched) < 1:
-            res = dict(cid=data[cid], inchi=data["inchi"])
+            res = dict(cid=data["cid"], inchi=data["inchi"])
     return res
 
 
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Init
-    threads = args.intput_thread_int
+    threads = args.input_thread_int
 
     engine = create_engine(f"sqlite:///{args.input_pubchem_db}")
     Session = sessionmaker(bind=engine)
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     df = pd.read_csv(args.input_chebi_csv)
     smiles = None
     for _, row in df.iterrows():
-        if f"CHEBI:{args.parameter_chebi_int}" in row["chebi"]:
+        if f"CHEBI:{args.parameter_chebi_int}" in ast.literal_eval(row["chebi"]):
             smiles = row["smiles"]
             break
     assert (
@@ -70,20 +71,19 @@ if __name__ == "__main__":
     ), f"Smiles not retrieved for ChEBI: {args.parameter_chebi_int}"
 
     # Find R-group
-    mol = Chem.MolFromSmiles(smiles)
-    wt_query = Descriptors.ExactMolWt(mol)
+    wt_mol = Chem.MolFromSmiles(smiles)
+    wt_query = Descriptors.ExactMolWt(wt_mol)
 
     queries = (
         session.query(Compound.cid, Compound.inchi)
         .filter(
-            and_(Compound.is_biochemical == 1, Compound.exact_mol_wt > exact_mol_wt)
+            and_(Compound.is_biochemical == 1, Compound.exact_mol_wt > wt_query)
         )
         .yield_per(int(1e7))
     )
     results = []
     batchs = set()
-    targets = [mol]
-    sub_start = time.time()
+    targets = [wt_mol]
     for count, query in enumerate(queries):
         batchs.add(query)
         if len(batchs) > 1e6:
@@ -115,10 +115,12 @@ if __name__ == "__main__":
                 print("Timeout error")
 
     session.close()
-    # Dereplicate
 
+    # Dereplicate
     datas = defaultdict(list)
     for result in results:
+        if result is None:
+            continue
         mol = Chem.MolFromInchi(result["inchi"])
         if mol:
             smiles = Chem.MolToSmiles(mol)
@@ -127,5 +129,5 @@ if __name__ == "__main__":
     # Write output
     with open(args.output_search_txt, "w") as fd:
         for smiles, cids in datas.items():
-            cid = ",".join(cids)
+            cid = ",".join([str(x) for x in cids])
             fd.write(f"{smiles}|{cid}\n")
