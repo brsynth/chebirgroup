@@ -6,7 +6,7 @@ set-threads:
     refine: 4
 set-resources:
     search:
-        mem: 32000MB
+        mem: 48000MB
     refine:
         mem: 64000MB
     aggregate:
