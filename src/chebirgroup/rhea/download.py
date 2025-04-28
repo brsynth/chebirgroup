@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from chebirgroup.utils import cmd
 import pandas as pd
 from rdkit import Chem
+from rdkit.Chem import Descriptors
 from tqdm import tqdm
 
 
@@ -55,15 +56,15 @@ class Rhea(object):
 
             df.at[ix, "smiles"] = rhea_smiles
             df.at[ix, "num_heavy_atoms"] = mol.GetNumHeavyAtoms()
+            df.at[ix, "exact_mol_wt"] = round(Descriptors.ExactMolWt(mol), 2)
             df.at[ix, "chebi"] = sorted(list(set(row["chebi"])))
-        df.rename(columns={"smiles": "smiles_rhea"}, inplace=True)
         df.to_csv(os.path.join(self.path, "rhea-chebi-smiles.csv"), index=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--output-rhea-dir", required=True, help="Output for the Rhea directory"
+        "--output-dir-str", required=True, help="Output for the Rhea directory"
     )
     parser.add_argument(
         "--parameter-release-int", type=int, default=134, help="Release version"
@@ -71,8 +72,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Create database
-    output_rhea_dir = args.output_rhea_dir
-    os.makedirs(output_rhea_dir, exist_ok=True)
-    rhea = Rhea(path=output_rhea_dir, release=args.parameter_release_int)
+    output_dir_str = args.output_dir_str
+    os.makedirs(output_dir_str, exist_ok=True)
+    rhea = Rhea(path=output_dir_str, release=args.parameter_release_int)
     rhea.download()
     rhea.format()
