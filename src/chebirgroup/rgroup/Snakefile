@@ -13,19 +13,9 @@ df = pd.read_csv(input_chebi_csv)
 
 chebi_ids = []
 for ix, row in df.iterrows():
-    if is_candidate(smiles=row["smiles_rhea"]):
+    if is_candidate(smiles=row["smiles"]):
         row_chebi_ids = ast.literal_eval(row["chebi"])
         chebi_id = row_chebi_ids[0]
-        """
-        chebi_basename = chebi_id.replace("CHEBI:", "chebi_") + ".txt"
-        if not os.path.isfile(os.path.join("/work/user/ggricourt/rgroup/chebi/search", chebi_basename)):
-            print("Chebi:", chebi_id, row_chebi_ids)
-            for candidate in row_chebi_ids[1:]:
-                chebi_basename_c = candidate.replace("CHEBI:", "chebi_") + ".txt"
-                if os.path.isfile(os.path.join("/work/user/ggricourt/rgroup/chebi/search", chebi_basename_c)):
-                    shutil.copyfile(os.path.join("/work/user/ggricourt/rgroup/chebi/search", chebi_basename_c), os.path.join("/work/user/ggricourt/rgroup/chebi/search", chebi_basename))
-                    break
-        """
         chebi_ids.append(chebi_id.replace("CHEBI:",""))
 
 rule all:
