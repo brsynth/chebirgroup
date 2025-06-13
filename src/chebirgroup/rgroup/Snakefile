@@ -4,6 +4,7 @@ import shutil
 
 from chebirgroup.utils.atomic import is_candidate
 
+depot_dir = config["depot_dir"]
 input_chebi_csv = config["input_chebi_csv"]
 input_pubchem_db = config["input_pubchem_db"]
 output_dir = config["output_dir_str"]
@@ -29,12 +30,14 @@ rule search:
         chebi = input_chebi_csv,
     output:
         txt = os.path.join(output_dir, "search", "chebi_{sample}.txt")
+    params:
+        depot_dir = depot_dir,
     conda:
         "chebirgroup"
     threads:
         6
     shell:
-        "python -u /save/user/ggricourt/brsynth/chebirgroup/src/chebirgroup/rgroup/search.py --input-chebi-csv {input.chebi} --input-pubchem-db {input.db} --parameter-chebi-int {wildcards.sample} --output {output.txt} --input-thread-int {threads}"
+        "python -u {params.depot_dir}/search.py --input-chebi-csv {input.chebi} --input-pubchem-db {input.db} --parameter-chebi-int {wildcards.sample} --output {output.txt} --input-thread-int {threads}"
 
 rule refine:
     input:
@@ -42,12 +45,14 @@ rule refine:
         chebi = input_chebi_csv,
     output:
         json = os.path.join(output_dir, "refine", "chebi_{sample}.json")
+    params:
+        depot_dir = depot_dir,
     conda:
         "chebirgroup"
     threads:
         6
     shell:
-        "python -u /save/user/ggricourt/brsynth/chebirgroup/src/chebirgroup/rgroup/refine.py --input-search-txt {input.txt} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads}"
+        "python -u {params.depot_dir}/refine.py --input-search-txt {input.txt} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads}"
 
 rule aggregate:
     input:
@@ -55,7 +60,9 @@ rule aggregate:
         chebi = input_chebi_csv,
     output:
         csv = os.path.join(output_dir, "chebis.csv.gz")
+    params:
+        depot_dir = depot_dir,
     conda:
         "chebirgroup"
     shell:
-        "python -u /save/user/ggricourt/brsynth/chebirgroup/src/chebirgroup/rgroup/aggregate.py --input-chebi-csv {input.chebi} --input-refine-json {input.json} --output-chebi-csv {output.csv}"
+        "python -u {params.depot_dir}/aggregate.py --input-chebi-csv {input.chebi} --input-refine-json {input.json} --output-chebi-csv {output.csv}"
