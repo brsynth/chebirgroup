@@ -39,6 +39,6 @@ snakemake \
 
 ## Dataset overview
 The Snakemake workflow produces a `csv.gz` file containing:  
-| smiles_rhea | chebi | num_heavy_atoms | additional_substituents_smiles | additional_substituents_pubchem_cid | only_match_rgroup_smiles | only_match_rgroup_pubchem_cid |
-| ----------- | ----------- |
-| str | List[str] | int | List[str] | List[List[str]] | List[str] | List[List[str]] |
+| smiles_rhea | chebi | num_heavy_atoms | exact_mol_wt | additional_substituents_smiles | additional_substituents_pubchem_cid | only_match_rgroup_smiles | only_match_rgroup_pubchem_cid |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `str` | `List[str]` | `int` | `int` | `List[str]` | List[List[str]] | List[str] | List[List[str]] |
