@@ -22,6 +22,14 @@ from tqdm import tqdm
 RDLogger.DisableLog("rdApp.*")
 
 
+def load_search_json(path) -> Dict:
+    data = {}
+    with open(path) as fd:
+        data = json.load(path)
+    data = data["match"]
+    data = {k, v for k, v in data.items() if len(v) > 0}
+    return data
+
 def check_rgroup_base(data):
     ps = RGroupDecompositionParameters()
     ps.allowNonTerminalRGroups = True
@@ -88,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--parameter-chunk-size-int", default=int(5e5), type=int, help="Manage chunk size for memory purpose"
     )
-    parser.add_argument("--input-search-txt", required=True, help="Input txt file")
+    parser.add_argument("--input-search-json", required=True, help="Input json file")
     parser.add_argument("--output-refine-json", required=True, help="Output json file")
     parser.add_argument("-t", "--input-thread-int", type=int, default=1, help="Threads")
     args = parser.parse_args()
@@ -96,7 +104,7 @@ if __name__ == "__main__":
     # Init
     threads = args.input_thread_int
     chunk_size = args.parameter_chunk_size_int
-    finput = args.input_search_txt
+    finput = args.input_search_json
     foutput = args.output_refine_json
 
     results = {}
@@ -115,15 +123,8 @@ if __name__ == "__main__":
     original_mol = Chem.MolFromSmiles(original_smiles)
     original_wt = Descriptors.ExactMolWt(original_mol)
 
-    smiles_sample = {}
-    with open(finput) as fd:
-        for line in fd:
-            line = line.replace("\n", "")
-            if line == "" or line == "|":
-                continue
-            smiles, cids = line.split("|")
-            smiles_sample[smiles] = [cids]
-
+    # Load input
+    smiles_sample = load_search_json(finput)
     smiles_to_process = {}
     smiles_not_process = {}
     for smiles, cids in tqdm(smiles_sample.items(), total=len(smiles_sample)):

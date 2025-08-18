@@ -38,7 +38,7 @@ snakemake \
     --use-conda \
     --latency-wait 5 \
     --rerun-incomplete \
-    --config depot_dir=./src/chebirgroup/rgroup input_chebi_csv=rhea-chebi-smiles.csv input_pubchem_db=pubchem.db output_dir_str=chebi
+    --config depot_dir=./src/chebirgroup/rgroup input_chebi_csv=rhea-chebi-smiles.csv input_pubchem_db=pubchem.db output_dir_str=chebi search_timeout=10
 ```
 
 ## Dataset overview

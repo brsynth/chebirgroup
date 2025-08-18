@@ -1,5 +1,6 @@
 import argparse
 import ast
+import json
 import multiprocessing
 import os
 from collections import defaultdict
@@ -48,12 +49,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--parameter-chebi-int", required=True, type=int, help="ChEBI id int"
     )
-    parser.add_argument("--output-search-txt", required=True, help="Output txt file")
+    parser.add_argument(
+        "--parameter-timeout-int", type=int, default=10, help="Timeout for matching one molecule, seconds"
+    )
+    parser.add_argument("--output-search-json", required=True, help="Output json file")
     parser.add_argument("-t", "--input-thread-int", type=int, default=1, help="Threads")
     args = parser.parse_args()
 
     # Init
     threads = args.input_thread_int
+    timeout = args.parameter_timeout_int
 
     engine = create_engine(f"sqlite:///{args.input_pubchem_db}")
     Session = sessionmaker(bind=engine)
@@ -84,6 +89,7 @@ if __name__ == "__main__":
     results = []
     batchs = set()
     targets = [wt_mol]
+    count_timeout = 0
     for count, query in enumerate(queries):
         batchs.add(query)
         if len(batchs) > 1e6:
@@ -97,8 +103,9 @@ if __name__ == "__main__":
                 ]
                 for async_result in async_results:
                     try:
-                        results.append(async_result.get(timeout=10))
+                        results.append(async_result.get(timeout=timeout))
                     except multiprocessing.TimeoutError:
+                        count_timeout += 1
                         print("Timeout error")
             batchs = set()
     with multiprocessing.Pool(processes=threads) as pool:
@@ -110,8 +117,9 @@ if __name__ == "__main__":
         ]
         for async_result in async_results:
             try:
-                results.append(async_result.get(timeout=10))
+                results.append(async_result.get(timeout=timeout))
             except multiprocessing.TimeoutError:
+                count_timeout += 1
                 print("Timeout error")
 
     session.close()
@@ -127,7 +135,11 @@ if __name__ == "__main__":
             datas[smiles].append(result["cid"])
 
     # Write output
-    with open(args.output_search_txt, "w") as fd:
-        for smiles, cids in datas.items():
-            cid = ",".join([str(x) for x in cids])
-            fd.write(f"{smiles}|{cid}\n")
+    stats = {
+        "chebi": f"CHEBI:{args.parameter_chebi_int}",
+        "timeout": timeout,
+        "count_timeout": count_timeout,
+        "match": datas
+    }
+    with open(args.output_search_json, "w") as fd:
+        json.dump(stats, fd)

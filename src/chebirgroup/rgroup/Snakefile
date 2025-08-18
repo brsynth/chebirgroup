@@ -8,6 +8,7 @@ depot_dir = config["depot_dir"]
 input_chebi_csv = config["input_chebi_csv"]
 input_pubchem_db = config["input_pubchem_db"]
 output_dir = config["output_dir_str"]
+search_timeout = config.get("search_timeout", "10")
 
 
 df = pd.read_csv(input_chebi_csv)
@@ -29,19 +30,20 @@ rule search:
         db = input_pubchem_db,
         chebi = input_chebi_csv,
     output:
-        txt = os.path.join(output_dir, "search", "chebi_{sample}.txt")
+        json = os.path.join(output_dir, "search", "chebi_{sample}.json")
     params:
         depot_dir = depot_dir,
+        timeout = search_timeout,
     conda:
         "chebirgroup"
     threads:
         6
     shell:
-        "python -u {params.depot_dir}/search.py --input-chebi-csv {input.chebi} --input-pubchem-db {input.db} --parameter-chebi-int {wildcards.sample} --output {output.txt} --input-thread-int {threads}"
+        "python -u {params.depot_dir}/search.py --input-chebi-csv {input.chebi} --input-pubchem-db {input.db} --parameter-chebi-int {wildcards.sample} --output {output.json} --input-thread-int {threads} --parameter-timeout-int {params.timeout}"
 
 rule refine:
     input:
-        txt = os.path.join(output_dir, "search", "chebi_{sample}.txt"),
+        json = os.path.join(output_dir, "search", "chebi_{sample}.json"),
         chebi = input_chebi_csv,
     output:
         json = os.path.join(output_dir, "refine", "chebi_{sample}.json")
@@ -52,7 +54,7 @@ rule refine:
     threads:
         6
     shell:
-        "python -u {params.depot_dir}/refine.py --input-search-txt {input.txt} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads}"
+        "python -u {params.depot_dir}/refine.py --input-search-json {input.json} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads}"
 
 rule aggregate:
     input:
