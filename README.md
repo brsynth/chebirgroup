@@ -49,8 +49,8 @@ The Snakemake workflow produces a `csv.gz` file containing:
 | smiles_rhea | `str`|
 | chebi | `List[str]` |
 | num_heavy_atoms | `int` |
-| exact_mol_wt | `int` |
-| additional_substituents_smiles | `List[str]` |
-| additional_substituents_pubchem_cid | `List[List[str]]` |
-| only_match_rgroup_smiles | `List[str]` |
-| only_match_rgroup_pubchem_cid | `List[List[str]]` |
+| exact_mol_wt | `float` |
+| core_superstructure_smiles | `List[str]` |
+| core_superstructure_pubchem_cid | `List[List[str]]` |
+| rgroup_extended_smiles | `List[str]` |
+| rgroup_extended_pubchem_cid | `List[List[str]]` |
