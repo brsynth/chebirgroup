@@ -25,9 +25,9 @@ RDLogger.DisableLog("rdApp.*")
 def load_search_json(path) -> Dict:
     data = {}
     with open(path) as fd:
-        data = json.load(path)
+        data = json.load(fd)
     data = data["match"]
-    data = {k, v for k, v in data.items() if len(v) > 0}
+    data = {k: v for k, v in data.items() if len(v) > 0}
     return data
 
 def check_rgroup_base(data):
@@ -217,21 +217,6 @@ if __name__ == "__main__":
             else:
                 results["onlyrgroup"][data["smiles"]] = data["cid"]
 
-    # Format cid
-    data = {}
-    for key in results:
-        new_key = {}
-        for smiles, cids in results[key].items():
-            new_cids = []
-            for cid in cids:
-                if "," in cid:
-                    new_cids.extend(cid.split(","))
-                else:
-                    new_cids.append(cid)
-            new_cids = [int(x) for x in new_cids]
-            new_key[smiles] = new_cids
-        data[key] = new_key
-
     # Write output
     with open(foutput, "w") as fd:
-        json.dump(data, fd)
+        json.dump(results, fd)

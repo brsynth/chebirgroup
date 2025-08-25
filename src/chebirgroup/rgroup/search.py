@@ -89,38 +89,37 @@ if __name__ == "__main__":
     results = []
     batchs = set()
     targets = [wt_mol]
-    count_timeout = 0
+    cid_timeout = set()
+    count_query = 0
     for count, query in enumerate(queries):
         batchs.add(query)
         if len(batchs) > 1e6:
             with multiprocessing.Pool(processes=threads) as pool:
-                async_results = [
-                    pool.apply_async(
-                        check_rgroup,
-                        (dict(targets=targets, cid=query[0], inchi=query[1]),),
-                    )
-                    for query in batchs
-                ]
-                for async_result in async_results:
+                tasks = []
+                for query in batchs:
+                    cra = dict(targets=targets, cid=query[0], inchi=query[1])
+                    ar = pool.apply_async(check_rgroup, (cra,))
+                    tasks.append((ar, cra))
+                    count_query += 1
+                for ar, cra in tasks:
                     try:
-                        results.append(async_result.get(timeout=timeout))
+                        results.append(ar.get(timeout=timeout))
                     except multiprocessing.TimeoutError:
-                        count_timeout += 1
-                        print("Timeout error")
+                        cid_timeout.add(cra["cid"])
             batchs = set()
     with multiprocessing.Pool(processes=threads) as pool:
-        async_results = [
-            pool.apply_async(
-                check_rgroup, (dict(targets=targets, cid=query[0], inchi=query[1]),)
-            )
-            for query in batchs
-        ]
-        for async_result in async_results:
-            try:
-                results.append(async_result.get(timeout=timeout))
-            except multiprocessing.TimeoutError:
-                count_timeout += 1
-                print("Timeout error")
+        with multiprocessing.Pool(processes=threads) as pool:
+            tasks = []
+            for query in batchs:
+                cra = dict(targets=targets, cid=query[0], inchi=query[1])
+                ar = pool.apply_async(check_rgroup, (cra,))
+                tasks.append((ar, cra))
+                count_query += 1
+            for ar, cra in tasks:
+                try:
+                    results.append(ar.get(timeout=timeout))
+                except multiprocessing.TimeoutError:
+                    cid_timeout.add(cra["cid"])
 
     session.close()
 
@@ -138,7 +137,8 @@ if __name__ == "__main__":
     stats = {
         "chebi": f"CHEBI:{args.parameter_chebi_int}",
         "timeout": timeout,
-        "count_timeout": count_timeout,
+        "total_query": count_query,
+        "cid_timeout": list(cid_timeout),
         "match": datas
     }
     with open(args.output_search_json, "w") as fd:

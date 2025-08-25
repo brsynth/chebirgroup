@@ -4,11 +4,11 @@ import shutil
 
 from chebirgroup.utils.atomic import is_candidate
 
-depot_dir = config["depot_dir"]
+depot_dir = config["input_depot_str"]
 input_chebi_csv = config["input_chebi_csv"]
 input_pubchem_db = config["input_pubchem_db"]
 output_dir = config["output_dir_str"]
-search_timeout = config.get("search_timeout", "10")
+search_timeout = config.get("parameter_search_timeout_int", "10")
 
 
 df = pd.read_csv(input_chebi_csv)
