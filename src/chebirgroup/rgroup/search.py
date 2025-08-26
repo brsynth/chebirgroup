@@ -1,5 +1,6 @@
 import argparse
 import ast
+import json
 import multiprocessing
 import os
 from collections import defaultdict
@@ -48,12 +49,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--parameter-chebi-int", required=True, type=int, help="ChEBI id int"
     )
-    parser.add_argument("--output-search-txt", required=True, help="Output txt file")
+    parser.add_argument(
+        "--parameter-timeout-int", type=int, default=10, help="Timeout for matching one molecule, seconds"
+    )
+    parser.add_argument("--output-search-json", required=True, help="Output json file")
     parser.add_argument("-t", "--input-thread-int", type=int, default=1, help="Threads")
     args = parser.parse_args()
 
     # Init
     threads = args.input_thread_int
+    timeout = args.parameter_timeout_int
 
     engine = create_engine(f"sqlite:///{args.input_pubchem_db}")
     Session = sessionmaker(bind=engine)
@@ -84,35 +89,37 @@ if __name__ == "__main__":
     results = []
     batchs = set()
     targets = [wt_mol]
+    cid_timeout = set()
+    count_query = 0
     for count, query in enumerate(queries):
         batchs.add(query)
         if len(batchs) > 1e6:
             with multiprocessing.Pool(processes=threads) as pool:
-                async_results = [
-                    pool.apply_async(
-                        check_rgroup,
-                        (dict(targets=targets, cid=query[0], inchi=query[1]),),
-                    )
-                    for query in batchs
-                ]
-                for async_result in async_results:
+                tasks = []
+                for query in batchs:
+                    cra = dict(targets=targets, cid=query[0], inchi=query[1])
+                    ar = pool.apply_async(check_rgroup, (cra,))
+                    tasks.append((ar, cra))
+                    count_query += 1
+                for ar, cra in tasks:
                     try:
-                        results.append(async_result.get(timeout=10))
+                        results.append(ar.get(timeout=timeout))
                     except multiprocessing.TimeoutError:
-                        print("Timeout error")
+                        cid_timeout.add(cra["cid"])
             batchs = set()
     with multiprocessing.Pool(processes=threads) as pool:
-        async_results = [
-            pool.apply_async(
-                check_rgroup, (dict(targets=targets, cid=query[0], inchi=query[1]),)
-            )
-            for query in batchs
-        ]
-        for async_result in async_results:
-            try:
-                results.append(async_result.get(timeout=10))
-            except multiprocessing.TimeoutError:
-                print("Timeout error")
+        with multiprocessing.Pool(processes=threads) as pool:
+            tasks = []
+            for query in batchs:
+                cra = dict(targets=targets, cid=query[0], inchi=query[1])
+                ar = pool.apply_async(check_rgroup, (cra,))
+                tasks.append((ar, cra))
+                count_query += 1
+            for ar, cra in tasks:
+                try:
+                    results.append(ar.get(timeout=timeout))
+                except multiprocessing.TimeoutError:
+                    cid_timeout.add(cra["cid"])
 
     session.close()
 
@@ -127,7 +134,12 @@ if __name__ == "__main__":
             datas[smiles].append(result["cid"])
 
     # Write output
-    with open(args.output_search_txt, "w") as fd:
-        for smiles, cids in datas.items():
-            cid = ",".join([str(x) for x in cids])
-            fd.write(f"{smiles}|{cid}\n")
+    stats = {
+        "chebi": f"CHEBI:{args.parameter_chebi_int}",
+        "timeout": timeout,
+        "total_query": count_query,
+        "cid_timeout": list(cid_timeout),
+        "match": datas
+    }
+    with open(args.output_search_json, "w") as fd:
+        json.dump(stats, fd)
