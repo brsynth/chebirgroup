@@ -1,5 +1,7 @@
 # BioRGroup dataset
 
+![BioRGroup Logo](.github/docs/logo.png)
+
 ## Data location
 
 [https://doi.org/10.57745/V3URYA](https://doi.org/10.57745/V3URYA)
