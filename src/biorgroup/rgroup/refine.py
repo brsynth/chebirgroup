@@ -100,6 +100,12 @@ if __name__ == "__main__":
         type=int,
         help="Manage chunk size for memory purpose",
     )
+    parser.add_argument(
+        "--parameter-timeout-int",
+        type=int,
+        default=10,
+        help="Timeout for matching one molecule, seconds",
+    )
     parser.add_argument("--input-search-json", required=True, help="Input json file")
     parser.add_argument("--output-refine-json", required=True, help="Output json file")
     parser.add_argument("-t", "--input-thread-int", type=int, default=1, help="Threads")
@@ -107,6 +113,7 @@ if __name__ == "__main__":
 
     # Init
     threads = args.input_thread_int
+    timeout = args.parameter_timeout_int
     chunk_size = args.parameter_chunk_size_int
     finput = args.input_search_json
     foutput = args.output_refine_json
@@ -150,7 +157,7 @@ if __name__ == "__main__":
             ]
             for async_result in async_results:
                 try:
-                    rgroup_bases.extend(async_result.get(timeout=300))
+                    rgroup_bases.extend(async_result.get(timeout=timeout))
                 except multiprocessing.TimeoutError:
                     continue
     del smiles_to_process
@@ -173,7 +180,7 @@ if __name__ == "__main__":
             ]
             for async_result in async_results:
                 try:
-                    new_smiles.append(async_result.get(timeout=10))
+                    new_smiles.append(async_result.get(timeout=timeout))
                 except Exception:
                     continue
     del batchs
@@ -210,7 +217,7 @@ if __name__ == "__main__":
             ]
             for async_result in async_results:
                 try:
-                    new_smiles.append(async_result.get(timeout=10))
+                    new_smiles.append(async_result.get(timeout=timeout))
                 except Exception:
                     continue
     results["onlyrgroup"] = {}

@@ -2,6 +2,7 @@ import ast
 import pandas as pd
 import shutil
 
+from biorgroup._version import __app_name__
 from biorgroup.utils.atomic import is_candidate
 
 depot_dir = config["input_depot_str"]
@@ -23,7 +24,7 @@ for ix, row in df.iterrows():
 rule all:
     input:
         expand(os.path.join(output_dir, "refine", "chebi_{sample}.json"), sample=chebi_ids),
-        os.path.join(output_dir, "chebis.csv.gz"),
+        os.path.join(output_dir, f"{__app_name__}.csv.gz"),
 
 rule search:
     input:
@@ -49,12 +50,13 @@ rule refine:
         json = os.path.join(output_dir, "refine", "chebi_{sample}.json")
     params:
         depot_dir = depot_dir,
+        timeout = search_timeout,
     conda:
         "biorgroup"
     threads:
         6
     shell:
-        "python -u {params.depot_dir}/refine.py --input-search-json {input.json} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads}"
+        "python -u {params.depot_dir}/refine.py --input-search-json {input.json} --output-refine-json {output.json} --input-chebi-csv {input.chebi} --parameter-chebi-int {wildcards.sample} --input-thread-int {threads} --parameter-timeout-int {params.timeout}"
 
 rule aggregate:
     input:
