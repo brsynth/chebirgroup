@@ -5,7 +5,7 @@ import os
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from chebirgroup.utils.atomic import is_candidate
+from biorgroup.utils.atomic import is_candidate
 import pandas as pd
 
 
@@ -15,7 +15,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-refine-json", nargs="*", required=True, help="Input refine json files"
     )
-    parser.add_argument("--output-chebi-csv", required=True, help="Output chebi csv file")
+    parser.add_argument(
+        "--output-chebi-csv", required=True, help="Output chebi csv file"
+    )
     args = parser.parse_args()
 
     # Init
@@ -30,12 +32,16 @@ if __name__ == "__main__":
     for ix, row in df.iterrows():
         if not is_candidate(row["smiles"]):
             continue
-        #print("Deal with:", row["chebi"])
+        # print("Deal with:", row["chebi"])
 
         chebi_id = row["chebi"][0]
         chebi_id = chebi_id.lower().replace(":", "_")
 
-        path_refines = [x for x in args.input_refine_json if os.path.basename(x) == chebi_id + ".json"]
+        path_refines = [
+            x
+            for x in args.input_refine_json
+            if os.path.basename(x) == chebi_id + ".json"
+        ]
         assert len(path_refines) == 1, "Retrieving refine file"
 
         with open(path_refines[0]) as fd:
@@ -55,7 +61,16 @@ if __name__ == "__main__":
         df.at[ix, "rgroup_extended_pubchem_cid"] = cids
 
     # Re-order columns
-    cols = ["smiles", "chebi", "num_heavy_atoms", "exact_mol_wt", "core_superstructure_smiles", "core_superstructure_pubchem_cid", "rgroup_extended_smiles", "rgroup_extended_pubchem_cid"]
+    cols = [
+        "smiles",
+        "chebi",
+        "num_heavy_atoms",
+        "exact_mol_wt",
+        "core_superstructure_smiles",
+        "core_superstructure_pubchem_cid",
+        "rgroup_extended_smiles",
+        "rgroup_extended_pubchem_cid",
+    ]
     df = df[cols]
 
     # Save

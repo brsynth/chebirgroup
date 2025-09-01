@@ -8,13 +8,14 @@ from multiprocessing.pool import ThreadPool as Pool
 from typing import Any, Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
-from chebirgroup.pubchem.compound import Compound
-from chebirgroup.utils import cmd, atomic
+from biorgroup.pubchem.compound import Compound
+from biorgroup.utils import cmd, atomic
 import pandas as pd
 from rdkit import Chem, RDLogger
 from rdkit.Chem import Descriptors
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 RDLogger.DisableLog("rdApp.*")
 
 

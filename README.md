@@ -1,4 +1,4 @@
-# ChEBI R-group
+# BioRGroup dataset
 
 ## Data location
 
@@ -7,7 +7,7 @@
 ## Installation
 
 ```sh
-conda env create --file recipes/worklow.yaml --name chebirgroup
+conda env create --file recipes/worklow.yaml --name biorgroup
 pip install --no-deps -e .
 ```
 
@@ -15,14 +15,14 @@ pip install --no-deps -e .
 
 ### 1 - Download PubChem
 ```sh
-python -m chebirgroup.pubchem.download \
+python -m biorgroup.pubchem.download \
     --output-pubchem-dir <output dir> \
     --output-pubchem-db <output sql database>
 ```
 
 ### 2 - Download Rhea
 ```sh
-python -m chebirgroup.rhea.download \
+python -m biorgroup.rhea.download \
     --output-rhea-dir <output dir> \
     --parameter-release-int <int>
 ```
@@ -33,12 +33,12 @@ snakemake \
     -p \
     -j 48 \
     -c 48 \
-    --workflow-profile template/chebirgroup \
-    -s ./src/chebirgroup/rgroup/Snakefile \
+    --workflow-profile template/biorgroup \
+    -s ./src/biorgroup/rgroup/Snakefile \
     --use-conda \
     --latency-wait 5 \
     --rerun-incomplete \
-    --config input_depot_str=./src/chebirgroup/rgroup input_chebi_csv=rhea-chebi-smiles.csv input_pubchem_db=pubchem.db output_dir_str=chebi parameter_search_timeout_int=10
+    --config input_depot_str=./src/biorgroup/rgroup input_chebi_csv=rhea-chebi-smiles.csv input_pubchem_db=pubchem.db output_dir_str=chebi parameter_search_timeout_int=10
 ```
 
 ## Dataset overview

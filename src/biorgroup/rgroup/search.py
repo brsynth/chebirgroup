@@ -6,7 +6,7 @@ import os
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from chebirgroup.pubchem.compound import Compound
+from biorgroup.pubchem.compound import Compound
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Descriptors
@@ -50,7 +50,10 @@ if __name__ == "__main__":
         "--parameter-chebi-int", required=True, type=int, help="ChEBI id int"
     )
     parser.add_argument(
-        "--parameter-timeout-int", type=int, default=10, help="Timeout for matching one molecule, seconds"
+        "--parameter-timeout-int",
+        type=int,
+        default=10,
+        help="Timeout for matching one molecule, seconds",
     )
     parser.add_argument("--output-search-json", required=True, help="Output json file")
     parser.add_argument("-t", "--input-thread-int", type=int, default=1, help="Threads")
@@ -81,9 +84,7 @@ if __name__ == "__main__":
 
     queries = (
         session.query(Compound.cid, Compound.inchi)
-        .filter(
-            and_(Compound.is_biochemical == 1, Compound.exact_mol_wt > wt_query)
-        )
+        .filter(and_(Compound.is_biochemical == 1, Compound.exact_mol_wt > wt_query))
         .yield_per(int(1e7))
     )
     results = []
@@ -139,7 +140,7 @@ if __name__ == "__main__":
         "timeout": timeout,
         "total_query": count_query,
         "cid_timeout": list(cid_timeout),
-        "match": datas
+        "match": datas,
     }
     with open(args.output_search_json, "w") as fd:
         json.dump(stats, fd)

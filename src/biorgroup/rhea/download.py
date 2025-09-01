@@ -5,7 +5,7 @@ import tarfile
 import tempfile
 from typing import Any, Dict, List, Optional, Tuple
 
-from chebirgroup.utils import cmd
+from biorgroup.utils import cmd
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Descriptors

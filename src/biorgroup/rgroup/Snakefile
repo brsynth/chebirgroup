@@ -2,7 +2,7 @@ import ast
 import pandas as pd
 import shutil
 
-from chebirgroup.utils.atomic import is_candidate
+from biorgroup.utils.atomic import is_candidate
 
 depot_dir = config["input_depot_str"]
 input_chebi_csv = config["input_chebi_csv"]
@@ -35,7 +35,7 @@ rule search:
         depot_dir = depot_dir,
         timeout = search_timeout,
     conda:
-        "chebirgroup"
+        "biorgroup"
     threads:
         6
     shell:
@@ -50,7 +50,7 @@ rule refine:
     params:
         depot_dir = depot_dir,
     conda:
-        "chebirgroup"
+        "biorgroup"
     threads:
         6
     shell:
@@ -65,6 +65,6 @@ rule aggregate:
     params:
         depot_dir = depot_dir,
     conda:
-        "chebirgroup"
+        "biorgroup"
     shell:
         "python -u {params.depot_dir}/aggregate.py --input-chebi-csv {input.chebi} --input-refine-json {input.json} --output-chebi-csv {output.csv}"

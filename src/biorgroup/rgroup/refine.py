@@ -6,8 +6,8 @@ import os
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
-from chebirgroup.pubchem.compound import Compound
-from chebirgroup.utils.multiprocessing import chunk_iterable
+from biorgroup.pubchem.compound import Compound
+from biorgroup.utils.multiprocessing import chunk_iterable
 import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Descriptors
@@ -29,6 +29,7 @@ def load_search_json(path) -> Dict:
     data = data["match"]
     data = {k: v for k, v in data.items() if len(v) > 0}
     return data
+
 
 def check_rgroup_base(data):
     ps = RGroupDecompositionParameters()
@@ -94,7 +95,10 @@ if __name__ == "__main__":
         "--parameter-chebi-int", required=True, type=int, help="ChEBI id int"
     )
     parser.add_argument(
-        "--parameter-chunk-size-int", default=int(5e5), type=int, help="Manage chunk size for memory purpose"
+        "--parameter-chunk-size-int",
+        default=int(5e5),
+        type=int,
+        help="Manage chunk size for memory purpose",
     )
     parser.add_argument("--input-search-json", required=True, help="Input json file")
     parser.add_argument("--output-refine-json", required=True, help="Output json file")

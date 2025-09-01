@@ -27,7 +27,7 @@ for package in env["dependencies"]:
     else:
         install_requires.append(package)
 """
-description = "R-group expansion of ChEBI molecules"
+description = "BioRGroup dataset: R-group expansion of ChEBI molecules referenced in the Rhea database"
 
 setuptools.setup(
     name=name,
@@ -36,7 +36,7 @@ setuptools.setup(
     author_email=["guipagui@gmail.com"],
     description=description,
     long_description_content_type="text/markdown",
-    url="https://github.com/brsynth/chebi-rgroup",
+    url="https://github.com/brsynth/biorgroup",
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     include_package_data=True,
