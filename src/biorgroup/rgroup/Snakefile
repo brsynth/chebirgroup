@@ -63,7 +63,7 @@ rule aggregate:
         json = expand(rules.refine.output.json, sample=chebi_ids),
         chebi = input_chebi_csv,
     output:
-        csv = os.path.join(output_dir, "chebis.csv.gz")
+        csv = os.path.join(output_dir, f"{__app_name__}.csv.gz")
     params:
         depot_dir = depot_dir,
     conda:
